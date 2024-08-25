@@ -1,5 +1,7 @@
 use std::io::{Read, Write};
 
+use tiki_macros::Serialize;
+
 use crate::serialize::Serialize;
 use crate::Error;
 
@@ -139,25 +141,9 @@ impl Serialize for ControlHeader {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct SplitHeader {
     pub seqnum: u16,
     pub chunk_count: u16,
     pub chunk_number: u16,
-}
-
-impl Serialize for SplitHeader {
-    fn serialize<W: Write>(&self, w: &mut W) {
-        self.seqnum.serialize(w);
-        self.chunk_count.serialize(w);
-        self.chunk_number.serialize(w)
-    }
-
-    fn deserialize<R: Read>(r: &mut R) -> Result<Self, Error> {
-        Ok(Self {
-            seqnum: u16::deserialize(r)?,
-            chunk_count: u16::deserialize(r)?,
-            chunk_number: u16::deserialize(r)?,
-        })
-    }
 }

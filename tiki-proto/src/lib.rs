@@ -1,9 +1,13 @@
+#![allow(clippy::new_without_default)]
+
 use std::io::Cursor;
 
 use crate::serialize::Serialize;
 use crate::transport::{Frame, FrameType, Reliability, TransportError};
 
+pub mod clientbound;
 pub mod serialize;
+pub mod serverbound;
 pub mod transport;
 
 #[derive(thiserror::Error, Debug)]
@@ -13,6 +17,9 @@ pub enum Error {
 
     #[error("transport protocol error: {0}")]
     Transport(#[from] TransportError),
+
+    #[error("peer sent unknown packet: {0}")]
+    UnknownPacket(u16),
 }
 
 #[derive(Debug)]
@@ -27,11 +34,24 @@ pub enum Output {
     Wait,
 }
 
-pub struct ConnectionState {}
+/// States for connection state machine.
+#[derive(Debug)]
+enum Phase {
+    Start,
+    ReceivingMedia,
+    InGame,
+    Disconnected,
+}
+
+pub struct ConnectionState {
+    phase: Phase,
+}
 
 impl ConnectionState {
     pub fn new() -> Self {
-        Self {}
+        Self {
+            phase: Phase::Start,
+        }
     }
 
     pub fn submit_input(&mut self, input: Input) {
@@ -52,5 +72,13 @@ impl ConnectionState {
         0u8.serialize(&mut buf);
 
         Output::SendData(buf.into_inner())
+    }
+
+    pub fn send_packet(&mut self) {
+        unimplemented!()
+    }
+
+    pub fn recv_packets(&mut self) {
+        unimplemented!()
     }
 }
