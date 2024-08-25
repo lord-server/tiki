@@ -32,6 +32,9 @@ impl Connection {
         let mut buf = [0; MAX_FRAME_SIZE];
 
         let output = self.state.poll_output();
+
+        println!("{:?}", output);
+
         match output {
             Output::SendData(data) => {
                 self.socket.send(&data).unwrap();
@@ -39,15 +42,16 @@ impl Connection {
             Output::Wait => {
                 std::thread::sleep(Duration::from_millis(200));
             }
+            Output::Disconnect => {},
         }
 
         match self.socket.recv(&mut buf) {
             Ok(packet_len) => {
-                self.state.submit_input(Input::ReceivedData(&buf[..packet_len]));
+                self.state.submit_input(Input::ReceivedData(&buf[..packet_len])).unwrap()
             }
             Err(e) => match e.kind() {
                 ErrorKind::TimedOut | ErrorKind::WouldBlock => {
-                    self.state.submit_input(Input::TimedOut);
+                    self.state.submit_input(Input::TimedOut).unwrap();
                 },
                 _ => Err(e)?,
             }

@@ -3,7 +3,10 @@ use tiki_macros::Serialize;
 use crate::Error;
 
 #[tiki_macros::packet]
-pub enum Clientbound {
+pub enum Serverbound {
+    #[id = 0x00]
+    Hello(Hello),
+
     #[id = 0x02]
     Init(Init),
 
@@ -76,6 +79,9 @@ pub enum Clientbound {
     #[id = 0x53]
     UpdateClientInfo(UpdateClientInfo),
 }
+
+#[derive(Serialize)]
+pub struct Hello {}
 
 #[derive(Serialize)]
 pub struct Init {}
