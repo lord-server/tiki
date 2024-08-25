@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["tiki-macros", "tiki-proto"]
+members = ["tiki-macros", "tiki-proto", "tiki-render"]
 
 [package]
 name = "tiki"
@@ -11,3 +11,5 @@ license = "LGPL-2.1"
 [dependencies]
 anyhow = "1.0.86"
 tiki-proto = { path = "tiki-proto" }
+tiki-render = { path = "tiki-render" }
+winit = "0.30.5"

@@ -1,10 +1,16 @@
 #![allow(clippy::new_without_default)]
+#![allow(clippy::single_match)]
 #![allow(dead_code)]
 
 use anyhow::Result;
 use std::io::ErrorKind;
 use std::net::{ToSocketAddrs, UdpSocket};
 use std::time::Duration;
+use tiki_render::Renderer;
+use winit::application::ApplicationHandler;
+use winit::event::WindowEvent;
+use winit::event_loop::{ActiveEventLoop, EventLoop};
+use winit::window::{Window, WindowId};
 
 use tiki_proto::{ConnectionState, Input, Output};
 
@@ -23,7 +29,9 @@ impl Connection {
 
         let state = ConnectionState::new();
 
-        socket.set_read_timeout(Some(Duration::from_millis(200))).unwrap();
+        socket
+            .set_read_timeout(Some(Duration::from_millis(200)))
+            .unwrap();
 
         Self { socket, state }
     }
@@ -42,32 +50,83 @@ impl Connection {
             Output::Wait => {
                 std::thread::sleep(Duration::from_millis(200));
             }
-            Output::Disconnect => {},
+            Output::Disconnect => {}
         }
 
         match self.socket.recv(&mut buf) {
-            Ok(packet_len) => {
-                self.state.submit_input(Input::ReceivedData(&buf[..packet_len])).unwrap()
-            }
+            Ok(packet_len) => self
+                .state
+                .submit_input(Input::ReceivedData(&buf[..packet_len]))
+                .unwrap(),
             Err(e) => match e.kind() {
                 ErrorKind::TimedOut | ErrorKind::WouldBlock => {
                     self.state.submit_input(Input::TimedOut).unwrap();
-                },
+                }
                 _ => Err(e)?,
-            }
+            },
         }
 
         Ok(())
     }
 }
 
-fn main() {
-    let address = std::env::args().nth(1).unwrap();
+struct App {
+    window: Option<Window>,
+    renderer: Option<Renderer>,
+}
 
-    let mut connection = Connection::new(address);
-
-    loop {
-        connection.poll().unwrap();
-        std::thread::sleep(Duration::from_secs(1));
+impl App {
+    pub fn new() -> Self {
+        Self {
+            window: None,
+            renderer: None,
+        }
     }
+}
+
+impl ApplicationHandler for App {
+    fn resumed(&mut self, event_loop: &ActiveEventLoop) {
+        let window_attributes = Window::default_attributes().with_title("Tiki");
+
+        let window = event_loop.create_window(window_attributes).unwrap();
+        let window_size = window.inner_size();
+
+        self.renderer = Some(Renderer::new(
+            &window,
+            window_size.width,
+            window_size.height,
+        ));
+        self.window = Some(window);
+    }
+
+    fn window_event(
+        &mut self,
+        event_loop: &ActiveEventLoop,
+        _window_id: WindowId,
+        event: WindowEvent,
+    ) {
+        match event {
+            WindowEvent::CloseRequested => event_loop.exit(),
+            WindowEvent::Resized(size) => {
+                if let Some(renderer) = &mut self.renderer {
+                    renderer.resize(size.width, size.height);
+                }
+            }
+            _ => {}
+        }
+    }
+
+    fn about_to_wait(&mut self, _event_loop: &ActiveEventLoop) {
+        if let Some(renderer) = &mut self.renderer {
+            renderer.render();
+        }
+    }
+}
+
+fn main() {
+    let mut app = App::new();
+
+    let event_loop = EventLoop::new().unwrap();
+
+    event_loop.run_app(&mut app).unwrap();
 }
