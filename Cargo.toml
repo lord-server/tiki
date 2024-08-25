@@ -1,6 +1,13 @@
+[workspace]
+resolver = "2"
+members = ["tiki-proto"]
+
 [package]
 name = "tiki"
 version = "0.1.0"
 edition = "2021"
+license = "LGPL-2.1"
 
 [dependencies]
+anyhow = "1.0.86"
+tiki-proto = { path = "tiki-proto" }

@@ -1,0 +1,9 @@
+[package]
+name = "tiki-proto"
+version = "0.1.0"
+edition = "2021"
+license = "LGPL-2.1"
+
+[dependencies]
+byteorder = "1.5.0"
+thiserror = "1.0.63"
