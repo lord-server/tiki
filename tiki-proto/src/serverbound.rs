@@ -3,6 +3,7 @@ use tiki_macros::Serialize;
 use crate::Error;
 
 #[tiki_macros::packet]
+#[derive(Debug)]
 pub enum Serverbound {
     #[id = 0x00]
     Hello(Hello),
@@ -80,77 +81,83 @@ pub enum Serverbound {
     UpdateClientInfo(UpdateClientInfo),
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct Hello {}
 
-#[derive(Serialize)]
-pub struct Init {}
+#[derive(Serialize, Debug)]
+pub struct Init {
+    pub client_max_serialization_ver: u8,
+    pub supp_compr_modes: u16,
+    pub min_net_proto_version: u16,
+    pub max_net_proto_version: u16,
+    pub player_name: String,
+}
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct Init2 {}
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct ModChannelJoin {}
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct ModChannelLeave {}
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct ModChannelMsg {}
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct PlayerPos {}
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct GotBlocks {}
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct DeletedBlocks {}
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct InventoryAction {}
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct ChatMessage {}
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct Damage {}
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct PlayerItem {}
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct Respawn {}
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct Interact {}
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct RemovedSounds {}
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct NodeMetaFields {}
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct InventoryFields {}
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct RequestMedia {}
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct HaveMedia {}
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct ClientReady {}
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct FirstSrp {}
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct SrpBytesA {}
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct SrpBytesM {}
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct UpdateClientInfo {}

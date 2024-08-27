@@ -5,6 +5,7 @@
 use anyhow::Result;
 use std::io::ErrorKind;
 use std::net::{ToSocketAddrs, UdpSocket};
+use std::process::exit;
 use std::time::Duration;
 use tiki_render::Renderer;
 use winit::application::ApplicationHandler;
@@ -12,13 +13,13 @@ use winit::event::WindowEvent;
 use winit::event_loop::{ActiveEventLoop, EventLoop};
 use winit::window::{Window, WindowId};
 
-use tiki_proto::{ConnectionState, Input, Output};
+use tiki_proto::{ClientConnectionState, Input, Output};
 
 const MAX_FRAME_SIZE: usize = 1536;
 
 pub struct Connection {
     socket: UdpSocket,
-    state: ConnectionState,
+    state: ClientConnectionState,
 }
 
 impl Connection {
@@ -27,7 +28,7 @@ impl Connection {
 
         socket.connect(address).unwrap();
 
-        let state = ConnectionState::new();
+        let state = ClientConnectionState::new();
 
         socket
             .set_read_timeout(Some(Duration::from_millis(200)))
@@ -124,9 +125,13 @@ impl ApplicationHandler for App {
 }
 
 fn main() {
-    let mut app = App::new();
+    let address = std::env::args().nth(1).unwrap_or_else(|| {
+        eprintln!("usage: tiki <address:port>");
+        std::process::exit(1)
+    });
 
-    let event_loop = EventLoop::new().unwrap();
-
-    event_loop.run_app(&mut app).unwrap();
+    let mut connection = Connection::new(address);
+    loop {
+        connection.poll().unwrap();
+    }
 }

@@ -3,8 +3,9 @@
 use std::collections::VecDeque;
 use std::io::{Cursor, Read};
 
+use crate::clientbound::Clientbound;
 use crate::serialize::Serialize;
-use crate::serverbound::{Hello, Serverbound};
+use crate::serverbound::{Hello, Init, Serverbound};
 use crate::transport::{ControlHeader, Frame, FrameType, Reliability, TransportError};
 
 pub mod clientbound;
@@ -22,6 +23,9 @@ pub enum Error {
 
     #[error("peer sent unknown packet: {0}")]
     UnknownPacket(u16),
+
+    #[error("unexpected non-Unicode string: {0:?}")]
+    NonUnicodeString(Vec<u8>),
 }
 
 #[derive(Debug)]
@@ -47,18 +51,18 @@ enum Phase {
     Disconnected,
 }
 
-pub struct ConnectionState {
+pub struct ClientConnectionState {
     phase: Phase,
 
     peer_id: u16,
 
     send_queue: VecDeque<Vec<u8>>,
-    recv_queue: VecDeque<Vec<u8>>,
+    recv_packet_queue: VecDeque<Clientbound>,
 
     disconnected: bool,
 }
 
-impl ConnectionState {
+impl ClientConnectionState {
     pub fn new() -> Self {
         Self {
             phase: Phase::BeforeHello,
@@ -66,7 +70,7 @@ impl ConnectionState {
             peer_id: 0,
 
             send_queue: VecDeque::new(),
-            recv_queue: VecDeque::new(),
+            recv_packet_queue: VecDeque::new(),
 
             disconnected: false,
         }
@@ -86,16 +90,28 @@ impl ConnectionState {
     }
 
     pub fn poll_output(&mut self) -> Output {
-        if self.phase == Phase::BeforeHello {
-            self.send_original(Serverbound::Hello(Hello {}));
+        match self.phase {
+            Phase::BeforeHello => {
+                self.send_original(Serverbound::Hello(Hello {}));
+            }
+            Phase::Hello => {
+                self.send_original(Serverbound::Init(Init {
+                    client_max_serialization_ver: 255,
+                    supp_compr_modes: 0,
+                    min_net_proto_version: 0,
+                    max_net_proto_version: 100,
+                    player_name: "Sc".to_string(),
+                }))
+            }
+            _ => {}
         }
 
         if self.disconnected {
             return Output::Disconnect;
         }
 
-        if let Some(frame) = self.send_queue.pop_front() {
-            return Output::SendData(frame);
+        if let Some(buf) = self.send_queue.pop_front() {
+            return Output::SendData(buf);
         }
 
         Output::Wait
@@ -124,8 +140,11 @@ impl ConnectionState {
                 }
                 ControlHeader::Disco => {}
             },
-            FrameType::Original => todo!(),
-            FrameType::Split(_) => todo!(),
+            FrameType::Original => {
+                let clientbound = Clientbound::deserialize(r)?;
+                self.recv_packet_queue.push_back(clientbound);
+            },
+            FrameType::Split(_) => {},
         }
 
         Ok(())

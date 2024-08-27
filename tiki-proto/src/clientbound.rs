@@ -3,6 +3,7 @@ use tiki_macros::Serialize;
 use crate::Error;
 
 #[tiki_macros::packet]
+#[derive(Debug)]
 pub enum Clientbound {
     #[id = 0x02]
     Hello(Hello),
@@ -176,175 +177,179 @@ pub enum Clientbound {
     SetLighting(SetLighting),
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct Hello {
-    x: u16,
+    pub serialization_version: u8,
+    pub compression_mode: u16,
+    pub protocol_version: u16,
+    pub auth_mechs: u32,
+    pub legacy_name: String,
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct AuthAccept {}
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct AcceptSudoMode {}
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct DenySudoMode {}
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct AccessDenied {}
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct BlockData {}
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct AddNode {}
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct RemoveNode {}
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct Inventory {}
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct TimeOfDay {}
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct CsmRestrictionFlags {}
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct PlayerSpeed {}
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct MediaPush {}
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct ChatMessage {}
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct ActiveObjectRemoveAdd {}
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct ActiveObjectMessages {}
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct Hp {}
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct MovePlayer {}
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct AccessDeniedLegacy {}
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct Fov {}
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct DeathScreen {}
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct Media {}
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct NodeDef {}
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct AnnounceMedia {}
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct ItemDef {}
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct PlaySound {}
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct StopSound {}
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct Privileges {}
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct InventoryFormSpec {}
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct DetachedInventory {}
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct ShowFormspec {}
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct Movement {}
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct SpawnParticle {}
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct AddParticleSpawner {}
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct HudAdd {}
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct HudRm {}
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct HudChange {}
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct Breath {}
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct SetSky {}
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct OverrideDayNightRatio {}
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct LocalPlayerAnimations {}
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct EyeOffset {}
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct DeleteParticleSpawner {}
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct CloudParams {}
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct FadeSound {}
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct UpdatePlayerList {}
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct ModChannelMsg {}
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct ModChannelSignal {}
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct NodeMetaChanged {}
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct SetSun {}
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct SetMoon {}
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct SetStars {}
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct MovePlayerRel {}
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct SrpBytesSB {}
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct FormspecPrepend {}
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct MinimapModes {}
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct SetLighting {}
