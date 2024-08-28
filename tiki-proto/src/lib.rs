@@ -5,13 +5,14 @@ use std::io::{Cursor, Read};
 
 use crate::clientbound::Clientbound;
 use crate::serialize::Serialize;
-use crate::serverbound::{Hello, Init, Serverbound};
+use crate::serverbound::{Hello, Init, Init2, Serverbound};
 use crate::transport::{ControlHeader, Frame, FrameType, Reliability, TransportError};
 
 pub mod clientbound;
 pub mod serialize;
 pub mod serverbound;
 pub mod transport;
+pub mod common;
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
@@ -44,8 +45,12 @@ pub enum Output {
 /// States for connection state machine.
 #[derive(Debug, PartialEq, Eq)]
 enum Phase {
-    BeforeHello,
-    Hello,
+    SendHello,
+    AwaitHello,
+    SendAuth1,
+    RecvAuth1,
+    SendAuth2,
+    RecvAuth2,
     ReceivingMedia,
     InGame,
     Disconnected,
@@ -59,20 +64,25 @@ pub struct ClientConnectionState {
     send_queue: VecDeque<Vec<u8>>,
     recv_packet_queue: VecDeque<Clientbound>,
 
-    disconnected: bool,
+    credentials: Credentials,
+}
+
+pub struct Credentials {
+    pub name: String,
+    pub password: String,
 }
 
 impl ClientConnectionState {
-    pub fn new() -> Self {
+    pub fn new(credentials: Credentials) -> Self {
         Self {
-            phase: Phase::BeforeHello,
+            phase: Phase::SendHello,
 
             peer_id: 0,
 
             send_queue: VecDeque::new(),
             recv_packet_queue: VecDeque::new(),
 
-            disconnected: false,
+            credentials,
         }
     }
 
@@ -90,24 +100,23 @@ impl ClientConnectionState {
     }
 
     pub fn poll_output(&mut self) -> Output {
+        println!("Phase: {:?}", self.phase);
+
         match self.phase {
-            Phase::BeforeHello => {
+            Phase::SendHello => {
                 self.send_original(Serverbound::Hello(Hello {}));
             }
-            Phase::Hello => {
-                self.send_original(Serverbound::Init(Init {
-                    client_max_serialization_ver: 255,
-                    supp_compr_modes: 0,
-                    min_net_proto_version: 0,
-                    max_net_proto_version: 100,
-                    player_name: "Sc".to_string(),
-                }))
+            Phase::AwaitHello => self.send_original(Serverbound::Init(Init {
+                client_max_serialization_ver: 255,
+                supp_compr_modes: 0,
+                min_net_proto_version: 0,
+                max_net_proto_version: 100,
+                player_name: self.credentials.name.clone(),
+            })),
+            Phase::Disconnected => {
+                return Output::Disconnect;
             }
             _ => {}
-        }
-
-        if self.disconnected {
-            return Output::Disconnect;
         }
 
         if let Some(buf) = self.send_queue.pop_front() {
@@ -128,23 +137,35 @@ impl ClientConnectionState {
 
         match frame.ty {
             FrameType::Control(control) => match control {
-                ControlHeader::Ack { .. } => {}
+                ControlHeader::Ack { .. } => {
+                    // re-send un-acked frames
+                }
                 ControlHeader::SetPeerId { peer_id } => {
-                    if self.phase == Phase::BeforeHello {
+                    if self.phase == Phase::SendHello {
                         self.peer_id = peer_id;
-                        self.phase = Phase::Hello;
+                        self.phase = Phase::AwaitHello;
                     }
                 }
                 ControlHeader::Ping => {
                     // pong
                 }
-                ControlHeader::Disco => {}
+                ControlHeader::Disco => {
+                    self.phase = Phase::Disconnected;
+                }
             },
             FrameType::Original => {
                 let clientbound = Clientbound::deserialize(r)?;
+                match clientbound {
+                    Clientbound::Hello(ref hello) => {
+                        println!("Got Clientbound::Hello: {hello:?}");
+                        self.phase = Phase::SendAuth1;
+                    }
+                    _ => {}
+                }
+
                 self.recv_packet_queue.push_back(clientbound);
-            },
-            FrameType::Split(_) => {},
+            }
+            FrameType::Split(_) => {}
         }
 
         Ok(())

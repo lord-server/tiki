@@ -2,7 +2,7 @@
 #![allow(clippy::single_match)]
 #![allow(dead_code)]
 
-use anyhow::Result;
+use anyhow::{bail, Result};
 use std::io::ErrorKind;
 use std::net::{ToSocketAddrs, UdpSocket};
 use std::process::exit;
@@ -13,7 +13,7 @@ use winit::event::WindowEvent;
 use winit::event_loop::{ActiveEventLoop, EventLoop};
 use winit::window::{Window, WindowId};
 
-use tiki_proto::{ClientConnectionState, Input, Output};
+use tiki_proto::{ClientConnectionState, Credentials, Input, Output};
 
 const MAX_FRAME_SIZE: usize = 1536;
 
@@ -23,12 +23,12 @@ pub struct Connection {
 }
 
 impl Connection {
-    pub fn new(address: impl ToSocketAddrs) -> Self {
+    pub fn new(address: impl ToSocketAddrs, credentials: Credentials) -> Self {
         let socket = UdpSocket::bind("0.0.0.0:0").unwrap();
 
         socket.connect(address).unwrap();
 
-        let state = ClientConnectionState::new();
+        let state = ClientConnectionState::new(credentials);
 
         socket
             .set_read_timeout(Some(Duration::from_millis(200)))
@@ -51,7 +51,9 @@ impl Connection {
             Output::Wait => {
                 std::thread::sleep(Duration::from_millis(200));
             }
-            Output::Disconnect => {}
+            Output::Disconnect => {
+                bail!("disconnect");
+            }
         }
 
         match self.socket.recv(&mut buf) {
@@ -125,12 +127,18 @@ impl ApplicationHandler for App {
 }
 
 fn main() {
-    let address = std::env::args().nth(1).unwrap_or_else(|| {
-        eprintln!("usage: tiki <address:port>");
-        std::process::exit(1)
-    });
+    let args: Vec<_> = std::env::args().collect();
+    if args.len() < 4 {
+        eprintln!("usage: tiki <address:port> <player_name> <password>");
+        std::process::exit(1);
+    }
 
-    let mut connection = Connection::new(address);
+    let address = args[1].clone();
+    let name = args[2].clone();
+    let password = args[3].clone();
+
+    let mut connection = Connection::new(address, Credentials { name, password });
+
     loop {
         connection.poll().unwrap();
     }

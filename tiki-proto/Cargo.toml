@@ -9,3 +9,4 @@ tiki-macros = { path = "../tiki-macros" }
 
 byteorder = "1.5.0"
 thiserror = "1.0.63"
+bitflags = "2.6.0"

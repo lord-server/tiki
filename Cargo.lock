@@ -1471,6 +1471,7 @@ dependencies = [
 name = "tiki-proto"
 version = "0.1.0"
 dependencies = [
+ "bitflags 2.6.0",
  "byteorder",
  "thiserror",
  "tiki-macros",

@@ -1,5 +1,7 @@
+use bitflags::bitflags;
 use tiki_macros::Serialize;
 
+use crate::common::AuthMechs;
 use crate::Error;
 
 #[tiki_macros::packet]
@@ -182,7 +184,7 @@ pub struct Hello {
     pub serialization_version: u8,
     pub compression_mode: u16,
     pub protocol_version: u16,
-    pub auth_mechs: u32,
+    pub auth_mechs: AuthMechs,
     pub legacy_name: String,
 }
 

@@ -94,7 +94,9 @@ pub struct Init {
 }
 
 #[derive(Serialize, Debug)]
-pub struct Init2 {}
+pub struct Init2 {
+    pub lang: String,
+}
 
 #[derive(Serialize, Debug)]
 pub struct ModChannelJoin {}
