@@ -1,4 +1,3 @@
-use bitflags::bitflags;
 use tiki_macros::Serialize;
 
 use crate::common::AuthMechs;

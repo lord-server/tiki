@@ -1,5 +1,8 @@
+pub mod svdag;
+
 use pollster::FutureExt;
 use raw_window_handle::{HasDisplayHandle, HasWindowHandle};
+use tiki_world::{pos, Map, Pos};
 
 pub struct Renderer {
     instance: wgpu::Instance,
@@ -70,7 +73,9 @@ impl Renderer {
             .texture
             .create_view(&wgpu::TextureViewDescriptor::default());
 
-        let mut encoder = self.device.create_command_encoder(&wgpu::CommandEncoderDescriptor::default());
+        let mut encoder = self
+            .device
+            .create_command_encoder(&wgpu::CommandEncoderDescriptor::default());
 
         {
             let _rp = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
@@ -93,3 +98,4 @@ impl Renderer {
         surface_texture.present();
     }
 }
+

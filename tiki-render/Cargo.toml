@@ -4,6 +4,8 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+tiki-world = { path = "../tiki-world" }
+
 pollster = "0.3.0"
 raw-window-handle = "0.6.2"
 wgpu = "22.1.0"

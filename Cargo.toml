@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["tiki-macros", "tiki-proto", "tiki-render"]
+members = ["tiki-macros", "tiki-proto", "tiki-render", "tiki-world"]
 
 [package]
 name = "tiki"
