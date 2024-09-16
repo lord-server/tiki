@@ -13,3 +13,6 @@ anyhow = "1.0.86"
 tiki-proto = { path = "tiki-proto" }
 tiki-render = { path = "tiki-render" }
 winit = "0.30.5"
+
+[workspace.lints.clippy]
+new_without_default = "allow"

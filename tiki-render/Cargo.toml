@@ -3,9 +3,14 @@ name = "tiki-render"
 version = "0.1.0"
 edition = "2021"
 
+[lints]
+workspace = true
+
 [dependencies]
 tiki-world = { path = "../tiki-world" }
 
+glam = "0.29.0"
 pollster = "0.3.0"
 raw-window-handle = "0.6.2"
 wgpu = "22.1.0"
+bytemuck = "1.18.0"

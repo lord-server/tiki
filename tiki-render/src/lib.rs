@@ -1,16 +1,25 @@
-pub mod svdag;
+pub mod mesh;
 
+use glam::{vec2, vec3};
 use pollster::FutureExt;
 use raw_window_handle::{HasDisplayHandle, HasWindowHandle};
-use tiki_world::{pos, Map, Pos};
+use wgpu::include_wgsl;
+use wgpu::util::{BufferInitDescriptor, DeviceExt};
+
+use crate::mesh::{Mesh, Vertex};
 
 pub struct Renderer {
-    instance: wgpu::Instance,
+    _instance: wgpu::Instance,
     surface: wgpu::Surface<'static>,
-    adapter: wgpu::Adapter,
+    _adapter: wgpu::Adapter,
     surface_config: wgpu::SurfaceConfiguration,
     device: wgpu::Device,
     queue: wgpu::Queue,
+
+    triangle: wgpu::Buffer,
+
+    pipeline_layout: wgpu::PipelineLayout,
+    pipeline: wgpu::RenderPipeline,
 }
 
 impl Renderer {
@@ -50,13 +59,76 @@ impl Renderer {
             .block_on()
             .unwrap();
 
+        let mut mesh = Mesh::new();
+        mesh.add_vertex(Vertex {
+            position: vec3(0.5, 0.5, 0.0),
+            normal: vec3(1.0, 0.0, 0.0),
+            texcoord: vec2(1.0, 1.0),
+        });
+        mesh.add_vertex(Vertex {
+            position: vec3(-0.5, 0.5, 0.0),
+            normal: vec3(1.0, 1.0, 0.0),
+            texcoord: vec2(0.0, 1.0),
+        });
+        mesh.add_vertex(Vertex {
+            position: vec3(0.0, -0.5, 0.0),
+            normal: vec3(1.0, 0.0, 0.0),
+            texcoord: vec2(0.5, 0.0),
+        });
+
+        let triangle = device.create_buffer_init(&BufferInitDescriptor {
+            label: None,
+            contents: bytemuck::cast_slice(mesh.data()),
+            usage: wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST,
+        });
+
+        let pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
+            label: None,
+            bind_group_layouts: &[],
+            push_constant_ranges: &[],
+        });
+
+        let world_shader = include_wgsl!("../../data/world.wgsl");
+        let vertex_shader = device.create_shader_module(world_shader.clone());
+        let fragment_shader = device.create_shader_module(world_shader);
+
+        let pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+            label: None,
+            layout: None,
+            vertex: wgpu::VertexState {
+                module: &vertex_shader,
+                entry_point: "vs_main",
+                compilation_options: wgpu::PipelineCompilationOptions::default(),
+                buffers: &[Vertex::buffer_layout()],
+            },
+            primitive: wgpu::PrimitiveState::default(),
+            depth_stencil: None,
+            multisample: wgpu::MultisampleState::default(),
+            fragment: Some(wgpu::FragmentState {
+                module: &fragment_shader,
+                entry_point: "fs_main",
+                compilation_options: wgpu::PipelineCompilationOptions::default(),
+                targets: &[Some(wgpu::ColorTargetState {
+                    format: surface_config.format,
+                    blend: None,
+                    write_mask: wgpu::ColorWrites::all(),
+                })],
+            }),
+            multiview: None,
+            cache: None,
+        });
+
         Self {
-            instance,
+            _instance: instance,
             surface,
-            adapter,
+            _adapter: adapter,
             surface_config,
             device,
             queue,
+            triangle,
+
+            pipeline_layout,
+            pipeline,
         }
     }
 
@@ -78,7 +150,7 @@ impl Renderer {
             .create_command_encoder(&wgpu::CommandEncoderDescriptor::default());
 
         {
-            let _rp = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+            let mut rp = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
                 label: None,
                 color_attachments: &[Some(wgpu::RenderPassColorAttachment {
                     view: &surface_texture_view,
@@ -92,10 +164,14 @@ impl Renderer {
                 timestamp_writes: None,
                 occlusion_query_set: None,
             });
+
+            rp.set_pipeline(&self.pipeline);
+            rp.set_vertex_buffer(0, self.triangle.slice(..));
+
+            rp.draw(0..3, 0..1);
         }
 
         self.queue.submit([encoder.finish()]);
         surface_texture.present();
     }
 }
-

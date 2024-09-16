@@ -1,5 +1,3 @@
-#![allow(clippy::new_without_default)]
-
 use std::collections::VecDeque;
 use std::io::{Cursor, Read};
 

@@ -3,5 +3,8 @@ name = "tiki-world"
 version = "0.1.0"
 edition = "2021"
 
+[lints]
+workspace = true
+
 [dependencies]
 glam = "0.29.0"
