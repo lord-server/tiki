@@ -61,19 +61,19 @@ impl Renderer {
 
         let mut mesh = Mesh::new();
         mesh.add_vertex(Vertex {
-            position: vec3(0.5, 0.5, 0.0),
-            normal: vec3(1.0, 0.0, 0.0),
-            texcoord: vec2(1.0, 1.0),
+            position: vec3(-1.0, -1.0, 0.0),
+            normal: vec3(0.0, 0.0, 0.0),
+            texcoord: vec2(0.0, 0.0),
         });
         mesh.add_vertex(Vertex {
-            position: vec3(-0.5, 0.5, 0.0),
-            normal: vec3(1.0, 1.0, 0.0),
+            position: vec3(-1.0, 3.0, 0.0),
+            normal: vec3(1.0, 0.0, 0.0),
             texcoord: vec2(0.0, 1.0),
         });
         mesh.add_vertex(Vertex {
-            position: vec3(0.0, -0.5, 0.0),
+            position: vec3(3.0, -1.0, 0.0),
             normal: vec3(1.0, 0.0, 0.0),
-            texcoord: vec2(0.5, 0.0),
+            texcoord: vec2(1.0, 0.0),
         });
 
         let triangle = device.create_buffer_init(&BufferInitDescriptor {
@@ -88,7 +88,7 @@ impl Renderer {
             push_constant_ranges: &[],
         });
 
-        let world_shader = include_wgsl!("../../data/world.wgsl");
+        let world_shader = include_wgsl!("../../data/fullscreen.wgsl");
         let vertex_shader = device.create_shader_module(world_shader.clone());
         let fragment_shader = device.create_shader_module(world_shader);
 
