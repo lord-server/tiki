@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["tiki-macros", "tiki-proto", "tiki-render", "tiki-world"]
+members = ["tiki-input", "tiki-macros", "tiki-proto", "tiki-render", "tiki-world"]
 
 [package]
 name = "tiki"
@@ -9,9 +9,11 @@ edition = "2021"
 license = "LGPL-2.1"
 
 [dependencies]
-anyhow = "1.0.86"
+tiki-input = { path = "tiki-input" }
 tiki-proto = { path = "tiki-proto" }
 tiki-render = { path = "tiki-render" }
+
+anyhow = "1.0.86"
 winit = "0.30.5"
 
 [workspace.lints.clippy]

@@ -1,6 +1,7 @@
 pub mod mesh;
 
-use glam::{vec2, vec3};
+use bytemuck::Zeroable;
+use glam::{vec2, vec3, Vec3};
 use pollster::FutureExt;
 use raw_window_handle::{HasDisplayHandle, HasWindowHandle};
 use wgpu::include_wgsl;
@@ -20,6 +21,15 @@ pub struct Renderer {
 
     pipeline_layout: wgpu::PipelineLayout,
     pipeline: wgpu::RenderPipeline,
+    uniform_buffer: wgpu::Buffer,
+    bind_group_layout: wgpu::BindGroupLayout,
+    bind_group: wgpu::BindGroup,
+}
+
+#[derive(bytemuck::Zeroable, bytemuck::Pod, Clone, Copy)]
+#[repr(C)]
+struct Uniforms {
+    position: Vec3,
 }
 
 impl Renderer {
@@ -82,9 +92,40 @@ impl Renderer {
             usage: wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST,
         });
 
+        let uniform_buffer = device.create_buffer_init(&BufferInitDescriptor {
+            label: None,
+            contents: bytemuck::bytes_of(&Uniforms::zeroed()),
+            usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
+        });
+
+        let bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+            label: None,
+            entries: &[wgpu::BindGroupLayoutEntry {
+                binding: 0,
+                visibility: wgpu::ShaderStages::VERTEX_FRAGMENT,
+                ty: wgpu::BindingType::Buffer {
+                    ty: wgpu::BufferBindingType::Uniform,
+                    has_dynamic_offset: false,
+                    min_binding_size: None,
+                },
+                count: None,
+            }],
+        });
+
+        let bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
+            label: None,
+            layout: &bind_group_layout,
+            entries: &[wgpu::BindGroupEntry {
+                binding: 0,
+                resource: wgpu::BindingResource::Buffer(uniform_buffer.as_entire_buffer_binding()),
+            }],
+        });
+
         let pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
             label: None,
-            bind_group_layouts: &[],
+            bind_group_layouts: &[
+                &bind_group_layout,
+            ],
             push_constant_ranges: &[],
         });
 
@@ -129,6 +170,9 @@ impl Renderer {
 
             pipeline_layout,
             pipeline,
+            uniform_buffer,
+            bind_group_layout,
+            bind_group,
         }
     }
 

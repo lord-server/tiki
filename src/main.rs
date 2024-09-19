@@ -4,15 +4,18 @@
 
 pub mod connection;
 
+use tiki_input::InputHandler;
 use tiki_render::Renderer;
 use winit::application::ApplicationHandler;
 use winit::event::WindowEvent;
 use winit::event_loop::{ActiveEventLoop, EventLoop};
+use winit::keyboard::KeyCode;
 use winit::window::{Window, WindowId};
 
 struct App {
     window: Option<Window>,
     renderer: Option<Renderer>,
+    input_handler: InputHandler,
 }
 
 impl App {
@@ -20,6 +23,7 @@ impl App {
         Self {
             window: None,
             renderer: None,
+            input_handler: InputHandler::new(),
         }
     }
 }
@@ -45,6 +49,8 @@ impl ApplicationHandler for App {
         _window_id: WindowId,
         event: WindowEvent,
     ) {
+        self.input_handler.submit_winit_event(&event);
+
         match event {
             WindowEvent::CloseRequested => event_loop.exit(),
             WindowEvent::Resized(size) => {
@@ -56,7 +62,11 @@ impl ApplicationHandler for App {
         }
     }
 
-    fn about_to_wait(&mut self, _event_loop: &ActiveEventLoop) {
+    fn about_to_wait(&mut self, event_loop: &ActiveEventLoop) {
+        if self.input_handler.is_key_pressed(KeyCode::Escape) {
+            event_loop.exit();
+        }
+
         if let Some(renderer) = &mut self.renderer {
             renderer.render();
         }

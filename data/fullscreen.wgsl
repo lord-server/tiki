@@ -11,9 +11,11 @@ fn vs_main(
     @location(2) texcoord: vec2f,
 ) -> VertexOutput {
     var result: VertexOutput;
+
     result.texcoord = texcoord;
     result.position = vec4f(position, 1.0);
     result.normal = normal;
+
     return result;
 }
 
@@ -28,12 +30,17 @@ fn fs_main(vertex: VertexOutput) -> @location(0) vec4f {
     return vec4f(trace_ray(ray), 1.0);
 }
 
+struct Uniforms {
+    dir: vec3f
+}
+
 struct Ray {
     origin: vec3f,
     dir: vec3f,
 }
 
 fn trace_ray(ray: Ray) -> vec3f {
+    let sun_pos = normalize(vec3f(0.7, -0.2, 0.4));
     let sphere_pos = vec3f(0.0, 0.0, 0.0);
     let sphere_radius = 1.0;
 
@@ -54,7 +61,10 @@ fn trace_ray(ray: Ray) -> vec3f {
         }
 
         if t > 0.0 {
-            return vec3f(1.0, 0.0, 0.0);
+            let t_pos = ray.origin + ray.dir * t;
+            let normal = normalize(sphere_pos - t_pos);
+            let color = vec3f(1.0, 1.0, 1.0) * saturate(dot(sun_pos, normal));
+            return color;
         }
     }
 

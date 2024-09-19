@@ -9,8 +9,8 @@ workspace = true
 [dependencies]
 tiki-world = { path = "../tiki-world" }
 
-glam = "0.29.0"
+glam = { version = "0.29.0", features = ["bytemuck"] }
 pollster = "0.3.0"
 raw-window-handle = "0.6.2"
 wgpu = "22.1.0"
-bytemuck = "1.18.0"
+bytemuck = { version = "1.18.0", features = ["derive"] }
