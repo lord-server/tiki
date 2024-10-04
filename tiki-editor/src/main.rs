@@ -177,7 +177,10 @@ fn main() {
     let path = std::env::args().nth(1).unwrap();
 
     let mut world = World::open(path).unwrap();
-    world.get_block(pos(0, 0, 0)).unwrap();
+    let block = world.get_block(pos(0, 0, 0)).unwrap();
+    let node = block.get_node(pos(0, 0, 0));
+    let name = block.name(node.id);
+    println!("{}", name);
 
     let event_loop = EventLoop::new().unwrap();
 
