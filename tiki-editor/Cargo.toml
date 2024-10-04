@@ -4,7 +4,12 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-winit = { workspace = true }
+winit = "0.30.5"
+tiki-render = { path = "../tiki-render" }
+egui = "0.29.1"
+egui-winit = "0.29.1"
+egui-wgpu = "0.29.1"
+wgpu = "22.1.0"
 
 [lints]
 workspace = true

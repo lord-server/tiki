@@ -68,7 +68,7 @@ impl ApplicationHandler for App {
         }
 
         if let Some(renderer) = &mut self.renderer {
-            renderer.render();
+            renderer.render(&mut []);
         }
     }
 }

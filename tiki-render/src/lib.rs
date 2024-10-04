@@ -54,7 +54,12 @@ impl Renderer {
             .block_on()
             .unwrap();
 
-        let surface_config = surface.get_default_config(&adapter, width, height).unwrap();
+        let mut surface_config = surface.get_default_config(&adapter, width, height).unwrap();
+
+        // NOTE: PresentMode::Fifo causes significant input lag, mailbox
+        // (vsync off) is much better for editor. Ideally this should be
+        // configurable by user.
+        surface_config.present_mode = wgpu::PresentMode::AutoNoVsync;
 
         let (device, queue) = adapter
             .request_device(
@@ -123,9 +128,7 @@ impl Renderer {
 
         let pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
             label: None,
-            bind_group_layouts: &[
-                &bind_group_layout,
-            ],
+            bind_group_layouts: &[&bind_group_layout],
             push_constant_ranges: &[],
         });
 
@@ -183,7 +186,7 @@ impl Renderer {
         self.surface.configure(&self.device, &self.surface_config);
     }
 
-    pub fn render(&mut self) {
+    pub fn render(&mut self, techniques: &mut [&mut dyn Technique]) {
         let surface_texture = self.surface.get_current_texture().unwrap();
         let surface_texture_view = surface_texture
             .texture
@@ -207,15 +210,35 @@ impl Renderer {
                 depth_stencil_attachment: None,
                 timestamp_writes: None,
                 occlusion_query_set: None,
-            });
+            }).forget_lifetime();
 
             rp.set_pipeline(&self.pipeline);
             rp.set_vertex_buffer(0, self.triangle.slice(..));
 
             rp.draw(0..3, 0..1);
+
+            for technique in techniques {
+                technique.render(self, &mut rp, &mut encoder);
+            }
         }
 
         self.queue.submit([encoder.finish()]);
         surface_texture.present();
     }
+
+    pub fn surface_format(&self) -> wgpu::TextureFormat {
+        self.surface_config.format
+    }
+
+    pub fn device(&self) -> &wgpu::Device {
+        &self.device
+    }
+
+    pub fn queue(&self) -> &wgpu::Queue {
+        &self.queue
+    }
+}
+
+pub trait Technique {
+    fn render(&mut self, r: &Renderer, rp: &mut wgpu::RenderPass<'static>, encoder: &mut wgpu::CommandEncoder);
 }
