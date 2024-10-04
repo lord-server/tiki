@@ -1,0 +1,15 @@
+[package]
+name = "tiki-client"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+tiki-input = { path = "../tiki-input" }
+tiki-proto = { path = "../tiki-proto" }
+tiki-render = { path = "../tiki-render" }
+
+anyhow = "1.0.86"
+winit = "0.30.5"
+
+[lints]
+workspace = true
