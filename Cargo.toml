@@ -2,12 +2,16 @@
 resolver = "2"
 members = [
     "tiki-client",
+    "tiki-editor",
     "tiki-input",
     "tiki-macros",
     "tiki-proto",
     "tiki-render",
     "tiki-world",
 ]
+
+[dependencies]
+winit = "0.30.5"
 
 [workspace.lints.clippy]
 new_without_default = "allow"
