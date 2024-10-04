@@ -1,5 +1,6 @@
 use egui::ClippedPrimitive;
 use tiki_render::Renderer;
+use tiki_world::{pos, World};
 use winit::application::ApplicationHandler;
 use winit::event::WindowEvent;
 use winit::event_loop::{ActiveEventLoop, EventLoop};
@@ -173,6 +174,11 @@ impl<'a> tiki_render::Technique for EguiWgpuTechnique<'a> {
 }
 
 fn main() {
+    let path = std::env::args().nth(1).unwrap();
+
+    let mut world = World::open(path).unwrap();
+    world.get_block(pos(0, 0, 0)).unwrap();
+
     let event_loop = EventLoop::new().unwrap();
 
     let mut app = App::new();

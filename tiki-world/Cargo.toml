@@ -6,5 +6,12 @@ edition = "2021"
 [lints]
 workspace = true
 
+[features]
+postgres = ["dep:postgres"]
+
 [dependencies]
+tiki-proto = { path = "../tiki-proto" }
+
 glam = "0.29.0"
+postgres = { version = "0.19.9", optional = true }
+thiserror = "1.0.63"

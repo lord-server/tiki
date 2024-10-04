@@ -4,8 +4,10 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-winit = "0.30.5"
 tiki-render = { path = "../tiki-render" }
+tiki-world = { path = "../tiki-world", features = ["postgres"] }
+
+winit = "0.30.5"
 egui = "0.29.1"
 egui-winit = "0.29.1"
 egui-wgpu = "0.29.1"
